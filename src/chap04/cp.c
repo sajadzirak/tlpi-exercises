@@ -2,12 +2,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-void error_handler(const char *error_msg)
-{
-    perror(error_msg);
-    exit(EXIT_FAILURE);
-}
+#include "error.h"
 
 void safe_write(int fd, const char *buf, size_t n)
 {
@@ -25,10 +20,7 @@ void safe_write(int fd, const char *buf, size_t n)
 int main(int argc, char *argv[])
 {
     if (argc != 3)
-    {
-        printf("Usage: cp [SRC] [DST]\n");
-        exit(EXIT_FAILURE);
-    }
+        usage_error("Usage: cp [SRC] [DST]\n");
 
     int src_fd, dst_fd;
     if ((src_fd = open(argv[1], O_RDONLY)) == -1)

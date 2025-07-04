@@ -2,19 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
-
-void error_handler(const char *error_msg, ...)
-{
-    fprintf(stderr, error_msg);
-    exit(EXIT_FAILURE);
-}
+#include "error.h"
 
 #define BUF_SIZE 1024
 
 int main(int argc, char *argv[])
 {
     if (argc < 2)
-        error_handler("Usage: tee [OPTION] [FILE]\n");
+        usage_error("Usage: tee [OPTION] [FILE]\n");
 
     int opt, append_mode = 0;
     char *opt_chars = "a";
@@ -26,13 +21,12 @@ int main(int argc, char *argv[])
                 append_mode = 1;
                 break;
             case '?':
-                error_handler("Usage: tee [OPTION] [FILE]\n");
-                break;
+                usage_error("Usage: tee [OPTION] [FILE]\n");
         }
     }
 
     if (optind >= argc)
-        error_handler("Usage: tee [OPTION] [FILE]\n");
+        usage_error("Usage: tee [OPTION] [FILE]\n");
 
     char *dst_file = argv[optind];
 
@@ -43,7 +37,7 @@ int main(int argc, char *argv[])
     int fd;
     if ((fd = open(dst_file, open_flags, 
                     S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
-        error_handler("There was an error opening %s file.\n", dst_file);
+        error_handler("opening file");
 
     ssize_t bytes_read, bytes_written = 0;
     char input_buf[BUF_SIZE];
@@ -55,7 +49,7 @@ int main(int argc, char *argv[])
         {
             bytes_written = write(STDOUT_FILENO, input_buf + total_written, bytes_read - total_written);
             if (bytes_written == -1)
-                error_handler("There was an error writing to stdout.\n");
+                error_handler("writing to stdout");
         }
 
         for(ssize_t total_written = 0;
@@ -64,15 +58,15 @@ int main(int argc, char *argv[])
         {
             bytes_written = write(fd, input_buf + total_written, bytes_read - total_written);
             if (bytes_written == -1)
-                error_handler("There was an error writing to %s.\n", dst_file);
+                error_handler("writing to file");
         }
     }
 
     if (bytes_read == -1)
-        error_handler("There was an error reading input.\n");
+        error_handler("reading input");
 
     if (close(fd) == -1)
-        error_handler("There was an error closing file.\n");
+        error_handler("closing file");
 
     return 0;
 }
