@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include "error.h"
+#include "tlpi_hdr.h"
 
 #define BUF_SIZE 1024
 
 int main(int argc, char *argv[])
 {
     if (argc < 2)
-        usage_error("Usage: tee [OPTION] [FILE]\n");
+        usageErr("%s [OPTION] [FILE]\n", argv[0]);
 
     int opt, append_mode = 0;
     char *opt_chars = "a";
@@ -21,12 +21,12 @@ int main(int argc, char *argv[])
                 append_mode = 1;
                 break;
             case '?':
-                usage_error("Usage: tee [OPTION] [FILE]\n");
+                usageErr("%s [OPTION] [FILE]\n", argv[0]);
         }
     }
 
     if (optind >= argc)
-        usage_error("Usage: tee [OPTION] [FILE]\n");
+        usageErr("%s [OPTION] [FILE]\n", argv[0]);
 
     char *dst_file = argv[optind];
 
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     int fd;
     if ((fd = open(dst_file, open_flags, 
                     S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
-        error_handler("opening file");
+        errExit("open");
 
     ssize_t bytes_read, bytes_written = 0;
     char input_buf[BUF_SIZE];
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
         {
             bytes_written = write(STDOUT_FILENO, input_buf + total_written, bytes_read - total_written);
             if (bytes_written == -1)
-                error_handler("writing to stdout");
+                errExit("write");
         }
 
         for(ssize_t total_written = 0;
@@ -58,15 +58,15 @@ int main(int argc, char *argv[])
         {
             bytes_written = write(fd, input_buf + total_written, bytes_read - total_written);
             if (bytes_written == -1)
-                error_handler("writing to file");
+                errExit("write");
         }
     }
 
     if (bytes_read == -1)
-        error_handler("reading input");
+        errExit("read");
 
     if (close(fd) == -1)
-        error_handler("closing file");
+        errExit("close");
 
     return 0;
 }

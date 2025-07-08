@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "error.h"
+#include "tlpi_hdr.h"
 
 void safe_write(int fd, const char *buf, size_t n)
 {
@@ -11,7 +11,7 @@ void safe_write(int fd, const char *buf, size_t n)
             total_written += bytes_written)
     {
         if ((bytes_written = write(fd, buf + total_written, n - total_written)) == -1)
-            error_handler("Writing to dst file");
+            errExit("write");
     }
 }
 
@@ -20,14 +20,14 @@ void safe_write(int fd, const char *buf, size_t n)
 int main(int argc, char *argv[])
 {
     if (argc != 3)
-        usage_error("Usage: cp [SRC] [DST]\n");
+        usageErr("%s [SRC] [DST]\n", argv[0]);
 
     int src_fd, dst_fd;
     if ((src_fd = open(argv[1], O_RDONLY)) == -1)
-        error_handler("Opening src file");
+        errExit("open");
     if ((dst_fd = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC, 
                         S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
-        error_handler("Opening dst file");
+        errExit("open");
 
     char buf[BUF_SIZE];
     ssize_t bytes_read;
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
                     safe_write(dst_fd, buf + j, i - j);
                 for (j = i + 1; j < bytes_read && buf[j] == '\0'; j++);
                 if (lseek(dst_fd, j - i, SEEK_CUR) == -1)
-                    error_handler("lseek");
+                    errExit("lseek");
                 i = j - 1;
             }
         }
@@ -52,12 +52,12 @@ int main(int argc, char *argv[])
     }
 
     if (bytes_read == -1)
-        error_handler("Reading src file");
+        errExit("read");
 
     if (close(src_fd) == -1)
-        error_handler("Closing src file");
+        errExit("close");
     if (close(dst_fd) == -1)
-        error_handler("Closing dst file");
+        errExit("close");
 
     return 0;
 }
