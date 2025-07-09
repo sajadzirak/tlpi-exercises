@@ -1,6 +1,5 @@
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdio.h>
 #include "tlpi_hdr.h"
 
 int fcntl_dup(int oldfd)
